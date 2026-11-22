@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ user.get_username }}</h1>
+  <p>Linked 9in identities:</p>
+  <ul>{% for identity in identities %}<li><code>{{ identity.sub }}</code> at {{ identity.issuer }}</li>{% endfor %}</ul>
+  <h2>ID token claims (<code>request.nine.claims</code>)</h2>
+  <pre>{{ claims }}</pre>
+  {% if token_claims %}
+    <h2>Access token claims</h2>
+    <pre>{{ token_claims }}</pre>
+  {% endif %}
+{% endblock %}

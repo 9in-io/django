@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+  {% if user.is_authenticated %}
+    <h1>Hello, {{ user.first_name|default:user.get_username }}</h1>
+    <p>You are signed in to Django as <code>{{ user.get_username }}</code> (9in user <code>{{ request.nine.sub }}</code>).</p>
+  {% else %}
+    <h1>Welcome</h1>
+    <p>Sign in with 9in: you come back here as a Django user, with <code>request.user</code>, <code>@login_required</code> and the admin working as usual.</p>
+  {% endif %}
+{% endblock %}

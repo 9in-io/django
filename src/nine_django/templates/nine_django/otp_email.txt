@@ -1,0 +1,6 @@
+{% autoescape off %}Your {{ purpose_label|lower }} code is:
+
+    {{ code }}
+
+{% if expires_in_minutes %}It expires in {{ expires_in_minutes }} minute{{ expires_in_minutes|pluralize }}. {% endif %}If you didn't ask for it, you can ignore this email.
+{% endautoescape %}

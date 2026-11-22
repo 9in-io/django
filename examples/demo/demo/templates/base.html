@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>9in Django demo</title>
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; max-width: 44rem; margin: 3rem auto; padding: 0 1rem; color: #1a1d29; }
+    nav { display: flex; gap: 1rem; align-items: center; margin-bottom: 2rem; }
+    nav strong { margin-right: auto; }
+    a.button { padding: .4rem .9rem; border-radius: 8px; background: #2b4eff; color: #fff; text-decoration: none; }
+    pre { background: #f4f5f9; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: .85rem; }
+  </style>
+</head>
+<body>
+  <nav>
+    <strong>9in Django demo</strong>
+    {% if user.is_authenticated %}
+      <a href="{% url 'account' %}">Account</a>
+      <a class="button" href="{% url 'nine:logout' %}">Sign out</a>
+    {% else %}
+      <a href="{% url 'nine:signup' %}">Sign up</a>
+      <a class="button" href="{% url 'nine:login' %}?return_to={% url 'account' %}">Sign in</a>
+    {% endif %}
+  </nav>
+  {% block content %}{% endblock %}
+</body>
+</html>

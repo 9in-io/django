@@ -1,0 +1,83 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Python ${{ matrix.python }}, Django ${{ matrix.django }}${{ matrix.drf == 'no' && ', no DRF' || '' }}${{ matrix.database == 'postgres' && ', PostgreSQL' || '' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { python: "3.10", django: "4.2" }
+          - { python: "3.12", django: "4.2" }
+          - { python: "3.10", django: "5.2" }
+          - { python: "3.14", django: "5.2" }
+          - { python: "3.12", django: "6.0" }
+          - { python: "3.14", django: "6.0" }
+          - { python: "3.12", django: "6.1" }
+          - { python: "3.14", django: "6.1" }
+          - { python: "3.14", django: "6.1", drf: "no" }
+          - { python: "3.13", django: "5.2", database: postgres }
+          - { python: "3.14", django: "6.1", database: postgres }
+
+    services:
+      postgres:
+        image: ${{ matrix.database == 'postgres' && 'postgres:17' || '' }}
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: nine
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      NINE_TEST_DATABASE: ${{ matrix.database }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+          allow-prereleases: true
+
+      - name: Install the 9in Python SDK
+        # From PyPI once it is published there, else from its repository.
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "9in>=0.1,<0.2" || python -m pip install "9in @ git+https://github.com/9in-io/python-sdk"
+
+      - name: Install the package and test tools
+        run: |
+          python -m pip install -e . pytest pytest-django "Django~=${{ matrix.django }}.0"
+          if [ "${{ matrix.drf }}" != "no" ]; then python -m pip install "djangorestframework>=3.15"; fi
+          if [ "${{ matrix.database }}" = "postgres" ]; then python -m pip install "psycopg[binary]>=3.1"; fi
+          python -m django --version
+
+      - name: Run tests
+        run: python -m pytest -q
+
+  package:
+    name: Build and check the package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: python -m pip install --upgrade build twine
+      - run: python -m build
+      - run: python -m twine check --strict dist/*
